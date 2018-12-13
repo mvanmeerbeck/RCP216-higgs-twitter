@@ -1,9 +1,9 @@
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class File(spark: SparkSession, filePath: String) {
-    def load() {
-        val csv = spark.read.csv(filePath)
+    var data: DataFrame = _
 
-        csv.show(5)
+    def load() {
+        data = spark.read.csv(filePath)
     }
 }
