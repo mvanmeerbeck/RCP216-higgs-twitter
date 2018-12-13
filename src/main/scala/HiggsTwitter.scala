@@ -9,6 +9,8 @@ object HiggsTwitter {
             .appName("HiggsTwitter")
             .getOrCreate()
 
+        val rootPath = scala.util.Properties.envOrElse("HOME", "~")
+
         /*        val socialNetworkSchema = new StructType()
                   .add("userA", IntegerType)
                   .add("userB", IntegerType)
@@ -47,16 +49,27 @@ object HiggsTwitter {
             .degrees
             .cache()
 
+        val userCount = socialNetwork.vertices.count()
+
         val degreeDistribution = socialNetworkDegrees
-            .map(degree => (degree._2, 1L))
+            .map(degree => (degree._2, 1F))
             .reduceByKey(_ + _)
+            .map(degree => (degree._1, degree._2 / userCount))
             .sortBy(_._1, false)
 
-        degreeDistribution.repartition(1).saveAsTextFile("test.csv")
+        degreeDistribution
+            .repartition(1)
+            .map(data => formatCsv(data))
+            .saveAsTextFile(rootPath + "/SocialNetwork/DegreeDistribution")
 
-        //socialNetworkDegrees.foreach(println)
         println(socialNetworkDegrees.map(_._2).stats())
 
         spark.stop()
+    }
+
+    def formatCsv(data: Product): String = {
+        data
+            .productIterator
+            .mkString(",")
     }
 }
