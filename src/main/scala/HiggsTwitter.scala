@@ -1,24 +1,21 @@
+import java.io.File
 import org.apache.spark.graphx.{Graph, GraphLoader, VertexId}
 import org.apache.spark.sql.SparkSession
+import scala.reflect.io.Directory
 
 object HiggsTwitter {
+    private val appName = "HiggsTwitter"
+    private val rootPath = scala.util.Properties.envOrElse("HOME", "~/" + appName)
+    private val socialNetworkDegreeDistributionDirectory = new Directory(new File(rootPath + "/SocialNetwork/DegreeDistribution"))
+
     def main(args: Array[String]) {
         val spark = SparkSession
             .builder
             .master("local[*]")
-            .appName("HiggsTwitter")
+            .appName(appName)
             .getOrCreate()
-
-        val rootPath = scala.util.Properties.envOrElse("HOME", "~")
-
-        /*        val socialNetworkSchema = new StructType()
-                  .add("userA", IntegerType)
-                  .add("userB", IntegerType)
-
-                var socialNetworkData = spark.read
-                  .option("delimiter", " ")
-                  .schema(socialNetworkSchema)
-                  .csv(args(0))*/
+        println(this.getClass.getName)
+        socialNetworkDegreeDistributionDirectory.deleteRecursively()
 
         // Social Network Graph
         val socialNetwork: Graph[Int, Int] = GraphLoader
@@ -51,16 +48,16 @@ object HiggsTwitter {
 
         val userCount = socialNetwork.vertices.count()
 
-        val degreeDistribution = socialNetworkDegrees
+        val socialNetworkDegreeDistribution = socialNetworkDegrees
             .map(degree => (degree._2, 1F))
             .reduceByKey(_ + _)
             .map(degree => (degree._1, degree._2 / userCount))
             .sortBy(_._1, false)
 
-        degreeDistribution
+        socialNetworkDegreeDistribution
             .repartition(1)
             .map(data => formatCsv(data))
-            .saveAsTextFile(rootPath + "/SocialNetwork/DegreeDistribution")
+            .saveAsTextFile(socialNetworkDegreeDistributionDirectory.path)
 
         println(socialNetworkDegrees.map(_._2).stats())
 
