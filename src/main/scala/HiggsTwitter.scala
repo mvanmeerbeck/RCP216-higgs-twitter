@@ -1,59 +1,32 @@
-import java.io.File
-
-import org.apache.spark.graphx.{Graph, GraphLoader, VertexId}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.graphx.{Graph, VertexRDD}
 
 import scala.reflect.io.Directory
 
-object HiggsTwitter {
-    private val appName = "HiggsTwitter"
-    private val rootPath = scala.util.Properties.envOrElse("HOME", "~/" + appName)
+abstract class HiggsTwitter extends Serializable {
+    protected val appName = "HiggsTwitter"
+    protected val rootPath = scala.util.Properties.envOrElse("HOME", "~/" + appName)
 
-    def main(args: Array[String]) {
-        val spark = SparkSession
-            .builder
-            .master("local[*]")
-            .appName(appName)
-            .getOrCreate()
+    /**
+      * Clustering coefficient
+      * C(V)=2*t / k(k−1)
+      */
+    def clusteringCoefficient(graph: Graph[Int, Int]) {
+        val triangleGraph: Graph[Int, Int] = graph.triangleCount()
 
-        // Social Network Graph
-        val socialNetwork: Graph[Int, Int] = GraphLoader
-            .edgeListFile(spark.sparkContext, args(0))
-            .cache()
+        val totalTriangleGraph: VertexRDD[Double] = graph.degrees.mapValues(d => d * (d - 1) / 2.0)
 
-        // Connected components
-        val connectedComponents: Graph[VertexId, Int] = socialNetwork
-            .connectedComponents()
-            .cache()
-
-        val componentCounts: Seq[(VertexId, Long)] = connectedComponents
-            .vertices
-            .map(_._2)
-            .countByValue
-            .toSeq
-            .sortBy(_._2)
-            .reverse
-
-        println(componentCounts.size)
-        //componentCounts.take(10).foreach(println)
-
-        // Degrees
-        exportDegreeDistribution(
-            socialNetwork,
-            new Directory(new File(rootPath + "/SocialNetwork/DegreeDistribution"))
-        )
-
-        spark.stop()
+        val coef: VertexRDD[Double] = triangleGraph.vertices.innerJoin(totalTriangleGraph) {
+            (vertexId, triangleCount, totalTriangle) => {
+                if (totalTriangle == 0) 0
+                else triangleCount / totalTriangle
+            }
+        }
     }
 
-    def exportDegreeDistribution(graph: Graph[Int, Int], directory: Directory): Unit = {
-        val graphDegrees = graph
-            .degrees
-            .cache()
-
+    def exportDegreeDistribution(graph: Graph[Int, Int], degrees: VertexRDD[Int], directory: Directory): Unit = {
         val verticesCount = graph.vertices.count()
 
-        val graphDegreeDistribution = graphDegrees
+        val graphDegreeDistribution = degrees
             .map(degree => (degree._2, 1F))
             .reduceByKey(_ + _)
             .map(degree => (degree._1, degree._2 / verticesCount))
