@@ -1,4 +1,5 @@
 import org.apache.spark.graphx.{Graph, VertexRDD}
+import org.apache.spark.rdd.RDD
 
 import scala.reflect.io.Directory
 
@@ -26,7 +27,7 @@ abstract class HiggsTwitter extends Serializable {
     def exportDegreeDistribution(graph: Graph[Int, Int], degrees: VertexRDD[Int], directory: Directory): Unit = {
         val verticesCount = graph.vertices.count()
 
-        val graphDegreeDistribution = degrees
+        val graphDegreeDistribution: RDD[(Int, Float)] = degrees
             .map(degree => (degree._2, 1F))
             .reduceByKey(_ + _)
             .map(degree => (degree._1, degree._2 / verticesCount))
@@ -36,6 +37,16 @@ abstract class HiggsTwitter extends Serializable {
         graphDegreeDistribution
             .repartition(1)
             .map(data => formatCsv(data))
+            .saveAsTextFile(directory.path)
+    }
+
+    def exportGraph(graph: Graph[Int, Int], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        graph
+            .edges
+            .repartition(1)
+            .map(data => formatCsv((data.srcId, data.dstId)))
             .saveAsTextFile(directory.path)
     }
 

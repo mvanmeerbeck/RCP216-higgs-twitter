@@ -1,7 +1,7 @@
 import java.io.File
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.{Graph, GraphLoader, VertexId}
+import org.apache.spark.graphx.{Graph, GraphLoader, VertexId, VertexRDD}
 import org.apache.spark.sql.SparkSession
 
 import scala.reflect.io.Directory
@@ -27,29 +27,45 @@ object SocialNetwork extends HiggsTwitter {
             )
             .cache()
 
-        // Connected components
-        logger.info("Building social network connected components")
+        /*        // Connected components
+                logger.info("Building social network connected components")
 
-        val connectedComponents: Graph[VertexId, Int] = socialNetwork
-            .connectedComponents()
-            .cache()
+                val connectedComponents: Graph[VertexId, Int] = socialNetwork
+                    .connectedComponents()
+                    .cache()
 
-        val componentCounts: Seq[(VertexId, Long)] = connectedComponents
-            .vertices
-            .map(_._2)
-            .countByValue
-            .toSeq
-            .sortBy(_._2)
-            .reverse
+                val componentCounts: Seq[(VertexId, Long)] = connectedComponents
+                    .vertices
+                    .map(_._2)
+                    .countByValue
+                    .toSeq
+                    .sortBy(_._2)
+                    .reverse
 
-        println(componentCounts.size)
+                println(componentCounts.size)
 
-        // Degrees
-        logger.info("Exporting social network degree distribution")
-        exportDegreeDistribution(
-            socialNetwork,
-            socialNetwork.degrees,
-            new Directory(new File(rootPath + "/SocialNetwork/DegreeDistribution"))
+                // Degrees
+                logger.info("Exporting social network degree distribution")
+                exportDegreeDistribution(
+                    socialNetwork,
+                    socialNetwork.degrees,
+                    new Directory(new File(rootPath + "/SocialNetwork/DegreeDistribution"))
+                )*/
+
+        // k-core
+        logger.info("Filtering the graph by k-coreness")
+        // FAUX
+        val socialNetworkKCore: Graph[Int, Int] = socialNetwork.filter(
+            graph => {
+                val degrees: VertexRDD[Int] = graph.degrees
+                graph.outerJoinVertices(degrees) { (vid, data, deg) => deg.getOrElse(0) }
+            },
+            vpred = (vid: VertexId, deg: Int) => deg > 500
+        )
+
+        exportGraph(
+            socialNetworkKCore,
+            new Directory(new File(rootPath + "/SocialNetwork/KCore"))
         )
 
         spark.stop()

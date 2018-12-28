@@ -32,7 +32,7 @@ object Activity extends HiggsTwitter {
         val activityGraph: Graph[Int, Int] = Graph.fromEdges(edges, 0)
                 .cache()
 
-        activityGraph.pageRank()
+        //activityGraph.pageRank()
 
         // Degree
         val activityDegrees = activityGraph
