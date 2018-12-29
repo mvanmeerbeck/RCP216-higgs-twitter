@@ -40,7 +40,16 @@ abstract class HiggsTwitter extends Serializable {
             .saveAsTextFile(directory.path)
     }
 
-    def exportGraph(graph: Graph[Int, Int], directory: Directory): Unit = {
+    def exportVertices(vertices: VertexRDD[Int], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        vertices
+            .repartition(1)
+            .map(data => formatCsv(data))
+            .saveAsTextFile(directory.path)
+    }
+
+    def exportEdges(graph: Graph[Int, Int], directory: Directory): Unit = {
         directory.deleteRecursively()
 
         graph

@@ -1,7 +1,7 @@
 import java.io.File
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.{Graph, GraphLoader, VertexId, VertexRDD}
+import org.apache.spark.graphx.{Graph, GraphLoader}
 import org.apache.spark.sql.SparkSession
 
 import scala.reflect.io.Directory
@@ -18,7 +18,7 @@ object SocialNetwork extends HiggsTwitter {
             .getOrCreate()
 
         // Social Network Graph
-        logger.info("Building social network graph")
+        logger.info("Loading social network graph")
 
         val socialNetwork: Graph[Int, Int] = GraphLoader
             .edgeListFile(
@@ -53,18 +53,18 @@ object SocialNetwork extends HiggsTwitter {
                 )*/
 
         // k-core
-        logger.info("Filtering the graph by k-coreness")
-        // FAUX
-        val socialNetworkKCore: Graph[Int, Int] = socialNetwork.filter(
-            graph => {
-                val degrees: VertexRDD[Int] = graph.degrees
-                graph.outerJoinVertices(degrees) { (vid, data, deg) => deg.getOrElse(0) }
-            },
-            vpred = (vid: VertexId, deg: Int) => deg > 500
+        logger.info("K Core decomposition")
+
+        val kcoreGraph: Graph[Int, Int] = GraphLoader.edgeListFile(
+            spark.sparkContext,
+            rootPath + "/kcore.csv"
         )
 
-        exportGraph(
-            socialNetworkKCore,
+        val corenessGraph = KCore.run(socialNetwork)
+            .cache()
+
+        exportVertices(
+            corenessGraph,
             new Directory(new File(rootPath + "/SocialNetwork/KCore"))
         )
 
