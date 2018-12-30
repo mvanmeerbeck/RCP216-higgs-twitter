@@ -1,5 +1,6 @@
 import java.io.File
 
+import lib.{DegreeDistribution, Export}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.graphx.{Edge, Graph}
 import org.apache.spark.rdd.RDD
@@ -44,9 +45,8 @@ object Activity extends HiggsTwitter {
             .map(_._2)
             .stats())
 
-        exportDegreeDistribution(
-            activityGraph,
-            activityDegrees,
+        Export.rdd(
+            DegreeDistribution.get(activityGraph),
             new Directory(new File(rootPath + "/Activity/DegreeDistribution"))
         )
 

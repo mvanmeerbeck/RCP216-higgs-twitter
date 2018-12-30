@@ -1,9 +1,11 @@
-import org.apache.spark.graphx._
+package lib
+
+import org.apache.spark.graphx.{Graph, PartitionID}
 import org.apache.spark.internal.Logging
 
 import scala.reflect.ClassTag
 
-object KCore extends Logging {
+object KCoreDecomposition extends Logging {
 
     def run[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED]) = {
         var degreeGraph: Graph[PartitionID, ED] = graph.outerJoinVertices(graph.degrees) {
