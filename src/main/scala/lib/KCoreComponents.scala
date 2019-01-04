@@ -5,7 +5,7 @@ import org.apache.spark.internal.Logging
 
 import scala.reflect.ClassTag
 
-object KCoreDecomposition extends Logging {
+object KCoreComponents extends Logging {
 
     def run[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED]) = {
         var degreeGraph: Graph[PartitionID, ED] = graph.outerJoinVertices(graph.degrees) {

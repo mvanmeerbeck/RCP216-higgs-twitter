@@ -1,13 +1,13 @@
 import java.io.File
 
-import lib.{Distribution, Export, KCoreDecomposition}
+import lib.{Distribution, Export, KCoreComponents}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.graphx.{Graph, GraphLoader}
 import org.apache.spark.sql.SparkSession
 
 import scala.reflect.io.Directory
 
-object SocialNetworkKCoreDecomposition extends HiggsTwitter {
+object SocialNetworkKCoreComponents extends HiggsTwitter {
     def main(args: Array[String]) {
         val logger = Logger.getLogger(getClass.getName)
         logger.setLevel(Level.INFO)
@@ -28,24 +28,24 @@ object SocialNetworkKCoreDecomposition extends HiggsTwitter {
             )
             .cache()
 
-        logger.info("K Core decomposition")
+        logger.info("K Core Components")
 
         /*val kcoreGraph: Graph[Int, Int] = GraphLoader.edgeListFile(
             spark.sparkContext,
             rootPath + "/kcore.csv"
         )*/
 
-        val kIndexes = KCoreDecomposition.run(socialNetwork)
+        val kIndexes = KCoreComponents.run(socialNetwork)
             .cache()
 
         Export.vertices(
             kIndexes,
-            new Directory(new File(rootPath + "/SocialNetwork/KCoreDecomposition/KIndexes"))
+            new Directory(new File(rootPath + "/SocialNetwork/KCoreComponents/KIndexes"))
         )
 
         Export.rdd(
             Distribution.get(kIndexes),
-            new Directory(new File(rootPath + "/SocialNetwork/KCoreDecomposition/Distribution"))
+            new Directory(new File(rootPath + "/SocialNetwork/KCoreComponents/Distribution"))
         )
 
         spark.stop()

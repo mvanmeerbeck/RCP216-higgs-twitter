@@ -1,6 +1,6 @@
 import java.io.File
 
-import lib.{ClusteringCoefficient, DegreeDistribution, Export}
+import lib._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.graphx.{Edge, Graph}
 import org.apache.spark.rdd.RDD
@@ -8,7 +8,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.reflect.io.Directory
 
-object Activity extends HiggsTwitter {
+object ActivityKCoreComponents extends HiggsTwitter {
 
     def main(args: Array[String]) {
         val logger = Logger.getLogger(getClass.getName)
@@ -33,24 +33,19 @@ object Activity extends HiggsTwitter {
         val activityGraph: Graph[Int, Int] = Graph.fromEdges(edges, 0)
                 .cache()
 
-        // Degree
-        val activityDegrees = activityGraph
-                .inDegrees
-                .cache()
+        // K-core Decomposition
+        val kIndexes = KCoreComponents.run(activityGraph)
+            .cache()
 
-        println(activityDegrees
-            .sortBy(_._2, ascending = false)
-            .map(_._2)
-            .stats())
-
-        Export.rdd(
-            DegreeDistribution.get(activityGraph),
-            new Directory(new File(rootPath + "/Activity/DegreeDistribution"))
+        Export.vertices(
+            kIndexes,
+            new Directory(new File(rootPath + "/Activity/KCoreComponents/KIndexes"))
         )
 
-        // Clustering coefficient
-        val clusteringCoefficient: Double = ClusteringCoefficient.avg(activityGraph)
-        println(clusteringCoefficient)
+        Export.rdd(
+            Distribution.get(kIndexes),
+            new Directory(new File(rootPath + "/Activity/KCoreComponents/Distribution"))
+        )
 
         spark.stop()
     }
