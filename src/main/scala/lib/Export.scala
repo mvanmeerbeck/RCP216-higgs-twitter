@@ -2,10 +2,21 @@ package lib
 
 import org.apache.spark.graphx.VertexRDD
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{Dataset, Row}
 
 import scala.reflect.io.Directory
 
 object Export{
+    def dataset(dataset: Dataset[Row], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        dataset
+            .repartition(1)
+            .write
+            .format("com.databricks.spark.csv")
+            .save(directory.path)
+    }
+
     def rdd(rdd: RDD[(Int, Float)], directory: Directory): Unit = {
         directory.deleteRecursively()
 

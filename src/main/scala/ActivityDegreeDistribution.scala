@@ -8,7 +8,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.reflect.io.Directory
 
-object Activity extends HiggsTwitter {
+object ActivityDegreeDistribution extends HiggsTwitter {
 
     def main(args: Array[String]) {
         val logger = Logger.getLogger(getClass.getName)
