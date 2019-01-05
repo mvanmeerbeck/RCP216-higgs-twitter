@@ -1,11 +1,9 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.Edge
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.{max, min}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.graphstream.graph.implementations.SingleGraph
-import org.graphstream.stream.file.{FileSinkDGS, FileSinkImages}
-import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputPolicy, OutputType, Resolutions}
-
+import org.graphstream.stream.file.FileSinkDGS
+import org.graphstream.stream.file.FileSinkImages.OutputPolicy
 
 object ActivityDynamic extends HiggsTwitter {
 
@@ -25,38 +23,50 @@ object ActivityDynamic extends HiggsTwitter {
             .option("inferSchema", true)
             .csv(args(0))
 
-        val edges: RDD[Edge[Int]] = activityDataFrame
-            .rdd
-            .map(row => Edge(row.getInt(0), row.getInt(1)))
+        val activityGraph = new SingleGraph("Activity")
+        activityGraph.setStrict(false)
+        activityGraph.setAutoCreate(true)
 
         val fs = new FileSinkDGS()
-        val graph = new SingleGraph("Social network")
+        activityGraph.addSink(fs)
+
         val outputPolicy = OutputPolicy.BY_STEP
-        val fsi = new FileSinkImages("prefix", OutputType.PNG, Resolutions.HD720, outputPolicy)
+        //val fsi = new FileSinkImages("prefix", OutputType.PNG, Resolutions.HD720, outputPolicy)
 
-        fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
+        //fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
 
-        graph.setStrict(false)
-        graph.setAutoCreate(true)
+        //activityGraph.addSink(fsi)
 
-        graph.addSink(fsi)
-        graph.addSink(fs)
+        var Row(start: Int, end: Int) = activityDataFrame
+            .agg(min("Timestamp"), max("Timestamp"))
+            .head
 
-        fsi.begin(rootPath + "/prefix")
+        var t = start
+        var l = 0
+        val step = 100000
+
         fs.begin(rootPath + "/test.dgs")
-        graph.stepBegins(0)
-        graph.addEdge("AB", "A", "B")
+        //fsi.begin(rootPath + "/prefix")
 
-        graph.stepBegins(1)
-        graph.stepBegins(2)
-        graph.stepBegins(3)
-        graph.addEdge("BC", "B", "C")
-        graph.stepBegins(4)
-        graph.addEdge("CA", "C", "A")
-        graph.stepBegins(5)
+        for (t <- start to end by step) {
+            val rows = activityDataFrame
+                .filter("Timestamp > " + (t - step) + " AND Timestamp <= " + t)
+
+            rows
+                .collect()
+                .foreach(row => {
+                    activityGraph.addEdge(l.toString, row.getInt(0).toString, row.getInt(1).toString, true)
+                    l += 1
+                })
+
+            println(t)
+            activityGraph.stepBegins(t)
+        }
+
+        activityGraph.stepBegins(end)
 
         fs.end()
-        fsi.end()
+        //fsi.end()
 
         spark.stop()
     }
