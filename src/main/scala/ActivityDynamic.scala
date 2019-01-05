@@ -1,6 +1,7 @@
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions.{max, min}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.graphstream.algorithm.ConnectedComponents
 import org.graphstream.graph.implementations.SingleGraph
 import org.graphstream.stream.file.FileSinkDGS
 import org.graphstream.stream.file.FileSinkImages.OutputPolicy
@@ -43,7 +44,10 @@ object ActivityDynamic extends HiggsTwitter {
 
         var t = start
         var l = 0
-        val step = 100000
+        val step = 100
+
+        val cc = new ConnectedComponents();
+        cc.init(activityGraph)
 
         fs.begin(rootPath + "/test.dgs")
         //fsi.begin(rootPath + "/prefix")
@@ -60,6 +64,9 @@ object ActivityDynamic extends HiggsTwitter {
                 })
 
             println(t)
+            printf("%d connected component(s) in this graph, so far.%n",
+                cc.getConnectedComponentsCount());
+
             activityGraph.stepBegins(t)
         }
 
