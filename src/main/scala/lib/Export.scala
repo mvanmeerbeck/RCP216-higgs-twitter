@@ -1,5 +1,7 @@
 package lib
 
+import java.io.{File, PrintWriter}
+
 import org.apache.spark.graphx.VertexRDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Dataset, Row}
@@ -7,6 +9,19 @@ import org.apache.spark.sql.{Dataset, Row}
 import scala.reflect.io.Directory
 
 object Export{
+    def list(list: List[(Int, Long)], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        val writer = new PrintWriter(new File(directory.path))
+
+        list.foreach(data => {
+            writer.write(formatCsv(data))
+            writer.println()
+        })
+
+        writer.close()
+    }
+
     def dataset(dataset: Dataset[Row], directory: Directory): Unit = {
         directory.deleteRecursively()
 
