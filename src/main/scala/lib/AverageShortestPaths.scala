@@ -41,4 +41,8 @@ object AverageShortestPaths extends Logging {
     def avg[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], numIter: Int): Double = {
         run(graph, numIter).map(_._2).sum / numIter
     }
+
+    def max[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], numIter: Int): Double = {
+        run(graph, numIter).map(_._2).max
+    }
 }
