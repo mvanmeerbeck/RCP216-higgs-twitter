@@ -16,7 +16,7 @@ object MaxFlow {
     Returns: the maximum flows as RDD[(VertexId,VertexId),Int]
     Note that the maxFlow function is defined below the shortestPath function
      */
-    def run(sc: SparkContext, sourceId: VertexId, targetId: VertexId, graph: Graph[Long, Int]): RDD[((VertexId, VertexId), Int)] = {
+    def run(sc: SparkContext, sourceId: VertexId, targetId: VertexId, graph: Graph[Long, Int], numIter: Int = 0): RDD[((VertexId, VertexId), Int)] = {
 
         val edges = graph.edges
             .cache()
@@ -36,8 +36,7 @@ object MaxFlow {
         // Note that algorithm only terminates when there are no more shortest paths
         // This could potentially be a long time, so the code user should edit in a max number
         // of iterations here if needed
-        while (path != empty && i < 10) {
-            println(i)
+        while (path != empty && (numIter == 0 || i < numIter)) {
             val bcPath = sc.broadcast(path)
 
             // Update the flows

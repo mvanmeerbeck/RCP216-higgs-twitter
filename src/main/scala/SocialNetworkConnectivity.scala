@@ -31,7 +31,7 @@ object SocialNetworkConnectivity extends HiggsTwitter {
         val targetId: VertexId = r.nextInt(socialNetwork.numVertices.toInt) // The target
         println(sourceId)
         println(targetId)
-        val flows: RDD[((VertexId, VertexId), Int)] = MaxFlow.run(spark.sparkContext, sourceId, targetId, socialNetwork)
+        val flows: RDD[((VertexId, VertexId), Int)] = MaxFlow.run(spark.sparkContext, sourceId, targetId, socialNetwork, 5)
 
         val emanating = flows.filter(e => e._1._1 == sourceId).map(e => (e._1._1,e._2)).reduceByKey(_ + _).collect
         println("Max Flow: ")
