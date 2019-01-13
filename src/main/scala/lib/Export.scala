@@ -6,6 +6,7 @@ import org.apache.spark.graphx.VertexRDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Dataset, Row}
 
+import scala.reflect.ClassTag
 import scala.reflect.io.Directory
 
 object Export{
@@ -32,6 +33,14 @@ object Export{
             .save(directory.path)
     }
 
+    def rdd[A: ClassTag, B: ClassTag](rdd: RDD[(A, B)], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        this.export(rdd
+            .repartition(1)
+            .map(data => formatCsv(data)), directory)
+    }
+
     def rdd(rdd: RDD[(Int, Float)], directory: Directory): Unit = {
         directory.deleteRecursively()
 
@@ -40,7 +49,7 @@ object Export{
             .map(data => formatCsv(data)), directory)
     }
 
-    def vertices(vertices: VertexRDD[Int], directory: Directory): Unit = {
+    def vertices[T: ClassTag](vertices: VertexRDD[T], directory: Directory): Unit = {
         this.export(vertices
             .repartition(1)
             .map(data => formatCsv(data)), directory)

@@ -1,6 +1,6 @@
-import lib.MaxFlow
+import lib.{ClusteringCoefficient, MaxFlow}
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.VertexId
+import org.apache.spark.graphx.{Graph, VertexId}
 import org.apache.spark.graphx.util.GraphGenerators
 import org.apache.spark.sql.SparkSession
 
@@ -15,9 +15,9 @@ object RandomGraph extends HiggsTwitter {
             .appName(appName)
             .getOrCreate()
 
-        for (i <- 1 to 30) {
+        for (i <- 1 to 3) {
             var n: Int = 10 * i // Number of vertices
-
+/*
             // Create random graph with random source and target
             var graph = GraphGenerators.logNormalGraph(spark.sparkContext, n, 5)
             val r = scala.util.Random
@@ -35,6 +35,14 @@ object RandomGraph extends HiggsTwitter {
             println(flows.count)
             println("Max Flow: ")
             println(emanating(0)._2)
+
+            val graphInt: Graph[Int, Int] = graph.mapVertices((vid, attr) => attr.toInt)
+            val clusteringCoefficient: Double = ClusteringCoefficient.avg(graphInt)
+
+            logger.info("clustering coeff : " + clusteringCoefficient)*/
+
+            val rmatGraph = GraphGenerators.rmatGraph(spark.sparkContext, n, n * 32)
+            logger.info("clustering coeff rmat : " + ClusteringCoefficient.avg(rmatGraph))
         }
 
         spark.stop()
