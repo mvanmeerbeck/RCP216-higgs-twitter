@@ -41,6 +41,14 @@ object Export{
             .map(data => formatCsv(data)), directory)
     }
 
+    def rdd[A: ClassTag, B: ClassTag, C: ClassTag](rdd: RDD[(A, B, C)], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        this.export(rdd
+            .repartition(1)
+            .map(data => formatCsv(data)), directory)
+    }
+
     def rdd(rdd: RDD[(Int, Float)], directory: Directory): Unit = {
         directory.deleteRecursively()
 
