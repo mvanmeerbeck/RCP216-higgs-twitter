@@ -15,7 +15,7 @@ set ztics border in scale 0,0 nomirror norotate  autojustify
 unset cbtics
 set rtics axis in scale 0,0 nomirror norotate  autojustify
 set title "Degree / k-shell"
-set logscale x
+set logscale yx
 set cblabel "Count"
 set cbrange [ 0.00000 : 5.00000 ] noreverse nowriteback
 set rrange [ * : * ] noreverse writeback

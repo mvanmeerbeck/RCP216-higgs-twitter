@@ -11,9 +11,9 @@ set ylabel "Average Clustering coefficient"
 set logscale xy
 
 P(k)= c*k**-gamma
-fit [0:1000] P(x) ARG1 using 1:2 via c,gamma
+fit [10:10000] P(x) ARG1 using 1:2 via c,gamma
 
-set label gprintf("k^{-%.02f}",gamma) at 1E4,0.04
+set label gprintf("k^{-%.02f}",gamma) at 30000,1E-4
 
 plot [k = 1E0 : 1E5] ARG1 using 1:2 title "Average Clustering coefficient" pt 8 ps 0.5, \
     P(k) dashtype 3
