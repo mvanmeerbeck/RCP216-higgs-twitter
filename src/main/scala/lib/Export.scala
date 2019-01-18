@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 import scala.reflect.io.Directory
 
 object Export{
-    def list(list: List[(Int, Long)], directory: Directory): Unit = {
+    def list(list: List[(Int, Double)], directory: Directory): Unit = {
         directory.deleteRecursively()
 
         val writer = new PrintWriter(new File(directory.path))

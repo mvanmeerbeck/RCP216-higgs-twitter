@@ -3,7 +3,7 @@ set nokey
 set datafile separator ','
 set style data linespoints
 
-set xlabel "Seconds"
+set xlabel "Day"
 set ylabel "Number of actions"
 set logscale y
 

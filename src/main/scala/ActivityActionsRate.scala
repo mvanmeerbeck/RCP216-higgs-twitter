@@ -34,6 +34,15 @@ object ActivityActionsRate extends HiggsTwitter {
             .count()
             .sort("Range")
 
+        actions
+            .agg(max("count"), avg("count"))
+            .show
+
+        actions
+            .orderBy(desc("count"))
+            .take(1)
+            .foreach(println)
+
         Export.dataset(
             actions,
             new Directory(new File(rootPath + "/Activity/ActionsRate"))
