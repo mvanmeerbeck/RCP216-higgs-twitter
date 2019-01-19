@@ -35,6 +35,12 @@ object SocialNetworkClusteringCoefficient extends HiggsTwitter {
         val clusteringCoefficients: Graph[Double, Int] = ClusteringCoefficient.byVertices(socialNetwork)
         logger.info(clusteringCoefficients.vertices.map(vertex => vertex._2).sum() / socialNetwork.numVertices)
 
+        clusteringCoefficients
+            .vertices
+            .sortBy(_._2, ascending = false)
+            .take(5)
+            .foreach(println)
+
         val degrees: VertexRDD[Int] = clusteringCoefficients.degrees
 
         val coeffDegree: Graph[(Double, Int), Int] = clusteringCoefficients.outerJoinVertices(degrees)((vertexId, coeff, degree) => {

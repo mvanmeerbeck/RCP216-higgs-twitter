@@ -43,6 +43,11 @@ object ActivityDegreeDistribution extends HiggsTwitter {
             .map(_._2)
             .stats())
 
+        println(activityDegrees
+            .sortBy(_._2, ascending = false)
+            .take(5)
+            .foreach(println))
+
         Export.rdd(
             DegreeDistribution.get(activityGraph),
             new Directory(new File(rootPath + "/Activity/DegreeDistribution"))

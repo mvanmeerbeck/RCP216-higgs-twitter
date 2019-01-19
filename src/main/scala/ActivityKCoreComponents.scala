@@ -37,6 +37,11 @@ object ActivityKCoreComponents extends HiggsTwitter {
         val kIndexes = KCoreComponents.run(activityGraph)
             .cache()
 
+        kIndexes
+            .sortBy(_._2, ascending = false)
+            .take(5)
+            .foreach(println)
+
         Export.vertices(
             kIndexes,
             new Directory(new File(rootPath + "/Activity/KCoreComponents/KIndexes"))

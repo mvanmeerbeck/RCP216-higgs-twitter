@@ -19,8 +19,8 @@ object ActivityClusteringCoefficient extends HiggsTwitter {
             .appName(appName)
             .getOrCreate()
 
-        // Social Network Graph
-        logger.info("Loading social network graph")
+        // Activity Graph
+        logger.info("Loading activity graph")
 
         val activityDataFrame: DataFrame = spark.read
             .option("sep", " ")
@@ -37,6 +37,12 @@ object ActivityClusteringCoefficient extends HiggsTwitter {
 
         val clusteringCoefficients: Graph[Double, Int] = ClusteringCoefficient.byVertices(activityGraph)
         logger.info(clusteringCoefficients.vertices.map(vertex => vertex._2).sum() / activityGraph.numVertices)
+
+        clusteringCoefficients
+            .vertices
+            .sortBy(_._2, ascending = false)
+            .take(50000)
+            .foreach(println)
 
         val degrees: VertexRDD[Int] = clusteringCoefficients.degrees
 

@@ -30,7 +30,10 @@ object ActivityPageRank extends HiggsTwitter {
 
         // PageRank
         val ranks = activityGraph.pageRank(0.0001).vertices
-        ranks.take(10).foreach(println)
+        ranks
+            .sortBy(_._2, ascending = false)
+            .take(5)
+            .foreach(println)
 
         spark.stop()
     }
