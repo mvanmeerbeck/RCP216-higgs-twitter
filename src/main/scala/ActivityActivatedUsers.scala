@@ -36,7 +36,7 @@ object ActivityActivatedUsers extends HiggsTwitter {
 
         val activityGraph: Graph[Int, Int] = Graph.fromEdges(edges, 0)
             .cache()
-
+        println(activityGraph.outDegrees.count());
         val activityDynamicGraph: DynamicGraph = new DynamicGraph(
             activityDataFrame,
             "Timestamp",
