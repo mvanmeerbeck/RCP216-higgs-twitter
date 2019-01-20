@@ -10,6 +10,19 @@ import scala.reflect.ClassTag
 import scala.reflect.io.Directory
 
 object Export{
+    def list[A: ClassTag, B: ClassTag, C: ClassTag](list: List[(A, B, C)], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        val writer = new PrintWriter(new File(directory.path))
+
+        list.foreach(data => {
+            writer.write(formatCsv(data))
+            writer.println()
+        })
+
+        writer.close()
+    }
+
     def list(list: List[(Int, Double)], directory: Directory): Unit = {
         directory.deleteRecursively()
 

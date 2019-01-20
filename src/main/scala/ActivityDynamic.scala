@@ -3,8 +3,8 @@ import org.apache.spark.sql.functions.{max, min}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.graphstream.algorithm.ConnectedComponents
 import org.graphstream.graph.implementations.SingleGraph
-import org.graphstream.stream.file.FileSinkDGS
-import org.graphstream.stream.file.FileSinkImages.OutputPolicy
+import org.graphstream.stream.file.{FileSinkDGS, FileSinkImages}
+import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputPolicy, OutputType, Resolutions}
 
 object ActivityDynamic extends HiggsTwitter {
 
@@ -32,11 +32,11 @@ object ActivityDynamic extends HiggsTwitter {
         activityGraph.addSink(fs)
 
         val outputPolicy = OutputPolicy.BY_STEP
-        //val fsi = new FileSinkImages("prefix", OutputType.PNG, Resolutions.HD720, outputPolicy)
+        val fsi = new FileSinkImages("prefix", OutputType.PNG, Resolutions.HD720, outputPolicy)
 
-        //fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
+        fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
 
-        //activityGraph.addSink(fsi)
+        activityGraph.addSink(fsi)
 
         var Row(start: Int, end: Int) = activityDataFrame
             .agg(min("Timestamp"), max("Timestamp"))
@@ -44,13 +44,13 @@ object ActivityDynamic extends HiggsTwitter {
 
         var t = start
         var l = 0
-        val step = 100
+        val step = 60 * 60
 
-        val cc = new ConnectedComponents();
-        cc.init(activityGraph)
+        /*val cc = new ConnectedComponents();
+        cc.init(activityGraph)*/
 
         fs.begin(rootPath + "/test.dgs")
-        //fsi.begin(rootPath + "/prefix")
+        fsi.begin(rootPath + "/prefix")
 
         for (t <- start to end by step) {
             val rows = activityDataFrame
@@ -64,8 +64,8 @@ object ActivityDynamic extends HiggsTwitter {
                 })
 
             println(t)
-            printf("%d connected component(s) in this graph, so far.%n",
-                cc.getConnectedComponentsCount());
+            /*printf("%d connected component(s) in this graph, so far.%n",
+                cc.getConnectedComponentsCount());*/
 
             activityGraph.stepBegins(t)
         }
@@ -73,7 +73,7 @@ object ActivityDynamic extends HiggsTwitter {
         activityGraph.stepBegins(end)
 
         fs.end()
-        //fsi.end()
+        fsi.end()
 
         spark.stop()
     }

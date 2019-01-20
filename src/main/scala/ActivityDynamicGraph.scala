@@ -1,9 +1,14 @@
-import lib.{AverageShortestPaths, ClusteringCoefficient}
+import java.io.File
+
+import ActivityActivatedUsers.rootPath
+import lib.{AverageShortestPaths, ClusteringCoefficient, DynamicGraph, Export}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.graphx.{Edge, Graph}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+
+import scala.reflect.io.Directory
 
 object ActivityDynamicGraph extends HiggsTwitter {
 
@@ -24,37 +29,27 @@ object ActivityDynamicGraph extends HiggsTwitter {
             .csv(args(0))
             .cache()
 
-        val interval = 60 * 60
+        val activityDynamicGraph: DynamicGraph = new DynamicGraph(
+            activityDataFrame,
+            "Timestamp",
+            60 * 60
+        )
 
-        var Row(start: Int, end: Int) = activityDataFrame
-            .agg(min("Timestamp"), max("Timestamp"))
-            .head
+        var stats: List[(Int, Long, Long)] = List[(Int, Long, Long)]()
 
-        start = start - (start % interval)
-        end = end - (end % interval)
+        for (t <- activityDynamicGraph.start to activityDynamicGraph.end by activityDynamicGraph.interval) {
+            logger.info(((t - activityDynamicGraph.start) / activityDynamicGraph.interval) + " / " + activityDynamicGraph.numInterval)
 
-        for (t <- start to end by interval) {
-            logger.info(t + " / " + (end - start) / interval)
+            val snapshot: Graph[Int, Int] = activityDynamicGraph.getSnapshotGraph(t)
 
-            val actions: Dataset[Row] = activityDataFrame
-                .withColumn("Range", col("Timestamp") - (col("Timestamp") % interval))
-                .filter("Range <= " + t)
-
-            val edges: RDD[Edge[Int]] = actions
-                .rdd
-                .map(row => Edge(row.getInt(0), row.getInt(1)))
-
-            val snapshotActivityGraph: Graph[Int, Int] = Graph.fromEdges(edges, 0)
-                .cache()
+            stats = stats :+ (t, snapshot.numVertices, snapshot.numEdges)
 
             /** Many simple parameters exist to describe a static network (number of nodes, edges, path length, connected components),
               * or to describe specific nodes in the graph such as the number of links or the clustering coefficient.
               * These properties can then individually be studied as a time series using signal processing notions
               * */
-            println("vertices " + snapshotActivityGraph.numVertices)
-            println("activated users " + snapshotActivityGraph.numVertices)
-            println("edges " + snapshotActivityGraph.numEdges)
-            println("cc ")
+
+            /*println("cc ")
             snapshotActivityGraph.connectedComponents()
                 .vertices
                 .map(_._2)
@@ -74,8 +69,13 @@ object ActivityDynamicGraph extends HiggsTwitter {
                 .map(_._2)
                 .stats())
 
-            println("avg shortest paths " + AverageShortestPaths.max(snapshotActivityGraph, 5))
+            println("avg shortest paths " + AverageShortestPaths.max(snapshotActivityGraph, 5))*/
         }
+
+        Export.list(
+            stats,
+            new Directory(new File(rootPath + "/Activity/Dynamic/stats.csv"))
+        )
 
         spark.stop()
     }

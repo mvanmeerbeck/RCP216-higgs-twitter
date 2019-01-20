@@ -1,17 +1,13 @@
 import java.io.File
 
-import ActivityDegreeDistribution.rootPath
-import lib.Export.formatCsv
-import lib._
+import lib.{DynamicGraph, Export}
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.graphx.{Edge, Graph, VertexId}
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.graphx.Graph
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.reflect.io.Directory
 
-object ActivityActivatedUsers extends HiggsTwitter {
+object ActivityDynamicGraphDegree extends HiggsTwitter {
 
     def main(args: Array[String]) {
         val logger = Logger.getLogger(getClass.getName)
@@ -30,31 +26,25 @@ object ActivityActivatedUsers extends HiggsTwitter {
             .csv(args(0))
             .cache()
 
-        val edges: RDD[Edge[Int]] = activityDataFrame
-            .rdd
-            .map(row => Edge(row.getInt(0), row.getInt(1)))
-
-        val activityGraph: Graph[Int, Int] = Graph.fromEdges(edges, 0)
-            .cache()
-
         val activityDynamicGraph: DynamicGraph = new DynamicGraph(
             activityDataFrame,
             "Timestamp",
             60 * 60
         )
-        var activatedUsers: List[(Int, Double)] = List[(Int, Double)]()
+
+        var stats: List[(Int, Int, Int)] = List[(Int, Int, Int)]()
 
         for (t <- activityDynamicGraph.start to activityDynamicGraph.end by activityDynamicGraph.interval) {
             logger.info(((t - activityDynamicGraph.start) / activityDynamicGraph.interval) + " / " + activityDynamicGraph.numInterval)
 
             val snapshot: Graph[Int, Int] = activityDynamicGraph.getSnapshotGraph(t)
 
-            activatedUsers = activatedUsers :+ (t, snapshot.outDegrees.count().toDouble / activityGraph.outDegrees.count().toDouble)
+            stats = stats :+ (t, snapshot.inDegrees.map(_._2).max(), snapshot.outDegrees.map(_._2).max())
         }
 
         Export.list(
-            activatedUsers,
-            new Directory(new File(rootPath + "/Activity/ActivatedUsers/data.csv"))
+            stats,
+            new Directory(new File(rootPath + "/Activity/Dynamic/degrees.csv"))
         )
 
         spark.stop()
