@@ -11,7 +11,8 @@ stats ARG1 u 2:3 nooutput
 
 set xlabel "Degree k"
 set ylabel "Probability density P(k)"
-
+set xrange [1E0 : 1E5]
+set yrange [1E-5 : 1E0]
 set logscale xy
 
 print int(STATS_blocks)
