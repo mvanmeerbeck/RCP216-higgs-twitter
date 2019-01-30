@@ -1,0 +1,21 @@
+digraph G {
+    rankdir = "RL"
+    node [shape = circle];
+
+    subgraph MT {
+        edge [color = "#ff7f00", fontcolor = "#ff7f00"];
+        3 -> 1 [label = "MT"];
+    }
+
+    subgraph RT {
+        edge [color = "#4daf4a", fontcolor = "#4daf4a"];
+        2 -> 1 [label = "RT"];
+        5 -> 3 [label = "RT"];
+        6 -> 3 [label = "RT"];
+    }
+
+    subgraph RE {
+        edge [color = "#984ea3", fontcolor = "#984ea3"];
+        4 -> 2 [label = "RE"];
+    }
+}

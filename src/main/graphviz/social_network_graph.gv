@@ -1,8 +1,8 @@
 digraph G {
     node [shape=circle];
-    edge [color=blue, fontcolor="blue"];
-    1 -> 2 [label="follow"];
-    1 -> 3 [label="follow"];
-    1 -> 4 [label="follow"];
-    1 -> 5 [label="follow"];
+    edge [color="#e41a1c", fontcolor="#e41a1c"];
+    1 -> 2 [label="FO"];
+    1 -> 3 [label="FO"];
+    1 -> 4 [label="FO"];
+    1 -> 5 [label="FO"];
 }
