@@ -28,6 +28,11 @@ object SocialNetworkDegreeDistribution extends HiggsTwitter {
             )
             .cache()
 
+        logger.info(socialNetwork.numVertices)
+        logger.info(socialNetwork.numEdges)
+        logger.info(socialNetwork.inDegrees.map(_._2).stats())
+        logger.info(socialNetwork.outDegrees.map(_._2).stats())
+
         // Degrees
         logger.info("Exporting social network degree distribution")
         Export.rdd(
