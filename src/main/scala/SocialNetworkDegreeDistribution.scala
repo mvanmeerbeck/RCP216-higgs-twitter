@@ -33,11 +33,27 @@ object SocialNetworkDegreeDistribution extends HiggsTwitter {
         logger.info(socialNetwork.inDegrees.map(_._2).stats())
         logger.info(socialNetwork.outDegrees.map(_._2).stats())
 
+        logger.info("density : " + (socialNetwork.numEdges.toDouble / (socialNetwork.numVertices.toDouble * (socialNetwork.numVertices.toDouble - 1))))
+
         // Degrees
         logger.info("Exporting social network degree distribution")
         Export.rdd(
             DegreeDistribution.get(socialNetwork),
             new Directory(new File(rootPath + "/SocialNetwork/DegreeDistribution"))
+        )
+
+        var subGraph = socialNetwork.outerJoinVertices(socialNetwork.degrees) {
+            (vid, vd, degree) => degree.getOrElse(0)
+        }.subgraph(
+            vpred = (vid, degree) => degree >= 150
+        ).cache()
+
+        logger.info(subGraph.numVertices)
+        logger.info(subGraph.numEdges)
+
+        Export.edges(
+            subGraph.edges,
+            new Directory(new File(rootPath + "/SocialNetwork/ReductedGraph"))
         )
 
         spark.stop()

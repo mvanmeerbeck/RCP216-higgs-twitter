@@ -38,6 +38,13 @@ object ActivityDegreeDistribution extends HiggsTwitter {
                 .inDegrees
                 .cache()
 
+        logger.info(activityGraph.numVertices)
+        logger.info(activityGraph.numEdges)
+        logger.info(activityGraph.inDegrees.map(_._2).stats())
+        logger.info(activityGraph.outDegrees.map(_._2).stats())
+
+        logger.info("density : " + (activityGraph.numEdges.toDouble / (activityGraph.numVertices.toDouble * (activityGraph.numVertices.toDouble - 1))))
+
         println(activityDegrees
             .sortBy(_._2, ascending = false)
             .map(_._2)

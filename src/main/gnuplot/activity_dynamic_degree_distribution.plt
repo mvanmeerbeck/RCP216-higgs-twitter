@@ -1,8 +1,10 @@
 unset label
 set datafile separator ','
+set termoption font "Open sans,18"
 
 set term gif animate
 set output "output.gif"
+set nokey
 
 set format x "10^{%T}"
 set format y "10^{%T}"
@@ -15,10 +17,6 @@ set xrange [1E0 : 1E5]
 set yrange [1E-5 : 1E0]
 set logscale xy
 
-print int(STATS_blocks)
-
-#plot for [i=1:int(STATS_blocks)] ARG1 index (i-1) using 2:3
-
 do for [i=1:int(STATS_blocks)]{
-    plot ARG1 index (i-1) using 2:3
+    plot ARG1 index (i-1) using 2:3 pt 8 ps 0.5 lc rgb "#4daf4a"
 }

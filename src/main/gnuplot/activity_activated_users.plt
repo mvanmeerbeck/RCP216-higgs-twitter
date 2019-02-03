@@ -1,6 +1,7 @@
 unset label
 set key bmargin center horizontal Right noreverse enhanced autotitles nobox
 set datafile separator ','
+set termoption font "Open sans,18"
 
 set xlabel "Time"
 set ylabel "Activated users"
@@ -60,14 +61,14 @@ fit [t3:t4] A3(x) ARG1 using 1:2 via lambda3
 A4(t) = 1 - (1 - A3(t4)) * exp(- lambda4 * ((t - t4)))
 fit [t4:t5] A4(x) ARG1 using 1:2 via lambda4
 
-set label gprintf("%.02f users/min", lambda * 279379 * 60) at (t1 + (t2 - t1) / 2), 0.25 center
-set label gprintf("%.02f users/min", lambda2 * 279379 * 60) at (t2 + (t3 - t2) / 2), 0.25 center
-set label gprintf("%.02f users/min", lambda3 * 279379 * 60) at (t3 + (t4 - t3) / 2), 0.25 center
-set label gprintf("%.02f users/min", lambda4 * 279379 * 60) at (t4 + (t5 - t4) / 2), 0.25 center
+set label gprintf("%.02f", lambda * 279379 * 60) at (t1 + (t2 - t1) / 2), 0.25 center
+set label gprintf("%.02f users/mn", lambda2 * 279379 * 60) at (t2 + (t3 - t2) / 2), 0.25 center
+set label gprintf("%.02f users/mn", lambda3 * 279379 * 60) at (t3 + (t4 - t3) / 2), 0.25 center
+set label gprintf("%.02f users/mn", lambda4 * 279379 * 60) at (t4 + (t5 - t4) / 2), 0.25 center
 
 plot \
-    ARG1 using 1:2 title "Activated users" with lines lw 5, \
-    [t = 1341100800:1341151200] A1(t) dashtype 8 lw 4, \
-    [t = 1341151200:1341230400] A2(t) dashtype 8 lw 4, \
-    [t = 1341230400:1341370800] A3(t) dashtype 8 lw 4, \
-    [t = 1341370800:1341702000] A4(t) dashtype 8 lw 4
+    ARG1 using 1:2 title "Activated users" with lines lw 10 lc rgb "#4daf4a", \
+    [t = 1341100800:1341151200] A1(t) lt rgb "#e41a1c" dashtype 3 lw 6 title "Fit Period I", \
+    [t = 1341151200:1341230400] A2(t) lt rgb "#377eb8" dashtype 3 lw 6 title "Fit Period II", \
+    [t = 1341230400:1341370800] A3(t) lt rgb "#984ea3" dashtype 3 lw 6 title "Fit Period III", \
+    [t = 1341370800:1341702000] A4(t) lt rgb "#ff7f00" dashtype 3 lw 6 title "Fit Period IV"

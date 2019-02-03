@@ -2,7 +2,7 @@ package lib
 
 import java.io.{File, PrintWriter}
 
-import org.apache.spark.graphx.VertexRDD
+import org.apache.spark.graphx.{EdgeRDD, VertexRDD}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Dataset, Row}
 
@@ -74,6 +74,14 @@ object Export{
         this.export(vertices
             .repartition(1)
             .map(data => formatCsv(data)), directory)
+    }
+
+    def edges[T: ClassTag](edges: EdgeRDD[T], directory: Directory): Unit = {
+        directory.deleteRecursively()
+
+        this.export(edges
+            .repartition(1)
+            .map(data => formatCsv((data.srcId, data.dstId))), directory)
     }
 
     def export(data: RDD[_], directory: Directory): Unit = {

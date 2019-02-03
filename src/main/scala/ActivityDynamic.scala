@@ -1,7 +1,6 @@
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions.{max, min}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.graphstream.algorithm.ConnectedComponents
 import org.graphstream.graph.implementations.SingleGraph
 import org.graphstream.stream.file.{FileSinkDGS, FileSinkImages}
 import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputPolicy, OutputType, Resolutions}
@@ -34,7 +33,13 @@ object ActivityDynamic extends HiggsTwitter {
         val outputPolicy = OutputPolicy.BY_STEP
         val fsi = new FileSinkImages("prefix", OutputType.PNG, Resolutions.HD720, outputPolicy)
 
+        fsi.setStyleSheet(
+            "graph { padding: 50px; fill-color: black; }" +
+                "node { fill-color: #3d5689; }" +
+                "edge { visibility-mode: hidden; }")
+
         fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
+        fsi.setQuality(FileSinkImages.Quality.HIGH)
 
         activityGraph.addSink(fsi)
 
@@ -45,9 +50,6 @@ object ActivityDynamic extends HiggsTwitter {
         var t = start
         var l = 0
         val step = 60 * 60
-
-        /*val cc = new ConnectedComponents();
-        cc.init(activityGraph)*/
 
         fs.begin(rootPath + "/test.dgs")
         fsi.begin(rootPath + "/prefix")
@@ -64,8 +66,6 @@ object ActivityDynamic extends HiggsTwitter {
                 })
 
             println(t)
-            /*printf("%d connected component(s) in this graph, so far.%n",
-                cc.getConnectedComponentsCount());*/
 
             activityGraph.stepBegins(t)
         }

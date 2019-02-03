@@ -1,6 +1,6 @@
 package lib
 
-import org.apache.spark.graphx.{Graph, PartitionID}
+import org.apache.spark.graphx.{Graph, PartitionID, VertexRDD}
 import org.apache.spark.internal.Logging
 
 import scala.reflect.ClassTag
@@ -12,7 +12,7 @@ object KCoreComponents extends Logging {
             (vid, vd, degree) => degree.getOrElse(0)
         }
             .cache()
-        var corenessGraph = graph.mapVertices((vid, _) => 0).vertices
+        var corenessGraph: VertexRDD[PartitionID] = graph.mapVertices((vid, _) => 0).vertices
         var k = 1
 
         while (degreeGraph.numVertices > 0) {
